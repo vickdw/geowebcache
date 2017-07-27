@@ -8,10 +8,13 @@
     <version>1.12-SNAPSHOT</version>
   </parent>
   <groupId>org.geowebcache</groupId>
-  <artifactId>rest-ng</artifactId>
+  <artifactId>gwc-rest-ng</artifactId>
   <packaging>jar</packaging>
   <name>gwc-rest-ng</name>
   <url>http://geowebcache.org</url>
+  <properties>
+    <jackson.version>2.7.5</jackson.version>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -31,9 +34,50 @@
 
     <!-- Spring MVC Rest dependencies -->
     <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-web</artifactId>
+        <version>${spring.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
       <version>${spring.version}</version>
+    </dependency>
+    
+    <!-- Needed for XML View (with JAXB2) -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-oxm</artifactId>
+        <version>${spring.version}</version>
+    </dependency>
+
+
+    <!-- Needed for JSON View -->
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>jstl</artifactId>
+      <version>1.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.10.3</version>
     </dependency>
 
     <!-- test dependencies  -->
@@ -55,8 +99,8 @@
       <classifier>tests</classifier>
     </dependency>
     <dependency>
-      <groupId>xmlunit</groupId>
-      <artifactId>xmlunit</artifactId>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-legacy</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -84,6 +128,15 @@
       <artifactId>javax.servlet-api</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>org.json</artifactId>
+      <version>2.0</version>
+    </dependency>
+      <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+      </dependency>
   </dependencies>
 
   <build>

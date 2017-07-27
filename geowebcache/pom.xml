@@ -12,7 +12,7 @@
   <properties>
     <gt.version>18-SNAPSHOT</gt.version>
     <jts.version>1.13</jts.version>
-    <jaiext.version>1.0.13</jaiext.version>
+    <jaiext.version>1.0.15</jaiext.version>
     <spring.version>4.2.5.RELEASE</spring.version>
     <restlet.version>1.0.8</restlet.version>
     <xstream.version>1.4.7</xstream.version>
@@ -106,7 +106,7 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-      <version>3.0.1</version>
+      <version>3.1.0</version>
       <scope>provided</scope>
     </dependency>
     
@@ -246,9 +246,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>xmlunit</groupId>
-      <artifactId>xmlunit</artifactId>
-      <version>1.3</version>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-legacy</artifactId>
+      <version>2.3.0</version>
       <scope>test</scope>
     </dependency>
     
@@ -289,31 +289,16 @@
    
     <!--  Jetty starter dependencies -->
     <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jetty</artifactId>
-      <version>6.1.20</version>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>9.4.6.v20170531</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jsp-2.0</artifactId>
-      <version>6.1.20</version>
-      <type>pom</type>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-webapp</artifactId>
+      <version>9.4.6.v20170531</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-simple</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>jcl104-over-slf4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -677,5 +662,7 @@
 	<module>distributed</module>
     <module>s3storage</module>
     <module>sqlite</module>
+    <module>restng</module>
+    <module>diskquotarest</module>
   </modules>
 </project>

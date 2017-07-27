@@ -1,3 +1,12 @@
+/*
+ *
+ *  *  (c) 2017 - 2016 Open Source Geospatial Foundation - all rights reserved
+ *  *  * This code is licensed under the GPL 2.0 license, available at the root
+ *  *  * application directory.
+ *  *
+ *
+ */
+
 package org.geowebcache.restng.config;
 
 import com.thoughtworks.xstream.XStream;
@@ -9,11 +18,6 @@ import org.geowebcache.restng.filter.XmlFilterUpdate;
 
 import java.io.InputStream;
 
-/**
- * Utility class to parse the rest xml messages into their corresponding java objects.
- *
- * Created by vickdw on 7/14/17.
- */
 public class XMLConfiguration {
     private static XStream getConfiguredXStream(XStream xs) {
         // Restrict classes that can be serialized/deserialized

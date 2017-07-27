@@ -1,3 +1,12 @@
+/*
+ *
+ *  *  (c) 2017 - 2016 Open Source Geospatial Foundation - all rights reserved
+ *  *  * This code is licensed under the GPL 2.0 license, available at the root
+ *  *  * application directory.
+ *  *
+ *
+ */
+
 package org.geowebcache.restng.filter;
 
 import org.geowebcache.GeoWebCacheException;
@@ -9,10 +18,7 @@ import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 
-/**
- * Created by vickdw on 7/14/17.
- */
-public class WMSRasterFilterUpdate extends XmlFilterUpdate {
+public class WMSRasterFilterUpdate {
     String gridSetId;
     int zoomStart;
     int zoomStop;
