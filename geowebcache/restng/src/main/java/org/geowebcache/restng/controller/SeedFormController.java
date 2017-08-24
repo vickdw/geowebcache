@@ -40,6 +40,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.base.Splitter;
+
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,20 +57,6 @@ public class SeedFormController extends GWCController {
 
     private Document form;
 
-    @RequestMapping(value = "/seed/ui_form", method = RequestMethod.GET)
-    public ResponseEntity<?> doGet(HttpServletRequest request) {
-        TileLayer tl;
-        try {
-            tl = seeder.findTileLayer(null);
-        } catch (GeoWebCacheException e) {
-            throw new RestException(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-
-        this.form = makeFormPage(tl, false);
-
-        return new ResponseEntity<Object>(form.outerHtml(), getHeaders(), HttpStatus.OK);
-    }
-
     @RequestMapping(value = "/seed/ui_form/{layer}", method = RequestMethod.GET)
     public ResponseEntity<?> doGet(HttpServletRequest request,
                                    @PathVariable String layer) {
@@ -79,11 +67,7 @@ public class SeedFormController extends GWCController {
         } catch (GeoWebCacheException e) {
             throw new RestException(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-
-
-        this.form = makeFormPage(tl, false);
-
-        return new ResponseEntity<Object>(form.outerHtml(), getHeaders(), HttpStatus.OK);
+        return handleDoGet(tl, false);
     }
 
     private HttpHeaders getHeaders() {
@@ -91,8 +75,12 @@ public class SeedFormController extends GWCController {
         headers.setContentType(MediaType.TEXT_HTML);
         return headers;
     }
+    
+    private ResponseEntity<?> handleDoGet(TileLayer tl, boolean listAllTasks) {
+        return new ResponseEntity<String>(makeFormPage(tl, listAllTasks), getHeaders(), HttpStatus.OK);
+    }
 
-    @RequestMapping(value = "/seed/ui/{layer}", method = RequestMethod.POST)
+    @RequestMapping(value = "/seed/ui_form/{layer}", method = RequestMethod.POST)
     public ResponseEntity<?> doPost(HttpServletRequest request,
                                     @PathVariable String layer) throws GeoWebCacheException {
         final TileLayer tl;
@@ -133,25 +121,24 @@ public class SeedFormController extends GWCController {
             throw new RestException("Unable to parse form result.",
                     HttpStatus.BAD_REQUEST);
         }
+        
+        Map<String, String> params = splitToMap(data);
 
-        if (form.getElementById("list") != null) {
+        if (params.containsKey("list")) {
             if (tl == null) {
                 throw new RestException("No layer specified", HttpStatus.BAD_REQUEST);
             }
-            boolean listAllTasks = "all".equals(form.getElementById("list").text());
-            form = new Document(null);
-            form = makeFormPage(tl, listAllTasks);
-            return new ResponseEntity<Object>(form.outerHtml(), getHeaders(), HttpStatus.OK);
-            //handleDoGet(resp, tl, listAllTasks);
-        } else if (form.getElementById("kill_thread") != null) {
-            return handleKillThreadPost(form, tl);
-        } else if (form.getElementById("kill_all") != null) {
-            return handleKillAllThreadsPost(form, tl);
-        } else if (form.getElementById("minX") != null) {
+            boolean listAllTasks = "all".equals(params.get("list"));
+            handleDoGet(tl, listAllTasks);
+        } else if (params.containsKey("kill_thread")) {
+            return handleKillThreadPost(params, tl);
+        } else if (params.containsKey("kill_all")) {
+            return handleKillAllThreadsPost(params, tl);
+        } else if (params.get("minX") != null) {
             if (tl == null) {
                 throw new RestException("No layer specified", HttpStatus.BAD_REQUEST);
             }
-            handleDoSeedPost(form, tl);
+            handleDoSeedPost(params, tl);
         } else {
             throw new RestException(
                     "Unknown or malformed request. Please try again, somtimes the form "
@@ -162,7 +149,15 @@ public class SeedFormController extends GWCController {
         return null;
     }
 
-    private Document makeFormPage(TileLayer tl, boolean listAllTasks) {
+    private Map<String, String> splitToMap(String data) {
+        if (data.contains("&")) {
+            return Splitter.on("&").withKeyValueSeparator("=").split(data);
+        }else {
+            return Splitter.on(" ").withKeyValueSeparator("=").split(data);
+        }
+    }
+
+    private String makeFormPage(TileLayer tl, boolean listAllTasks) {
 
         StringBuilder doc = new StringBuilder();
 
@@ -196,9 +191,7 @@ public class SeedFormController extends GWCController {
 
         makeFooter(doc);
 
-        form = Jsoup.parse(doc.toString());
-
-        return form;
+        return doc.toString();
     }
 
     private void makeModifiableParameters(StringBuilder doc, TileLayer tl) {
@@ -655,12 +648,12 @@ public class SeedFormController extends GWCController {
         doc.append("</body></html>\n");
     }
 
-    private ResponseEntity<?> handleKillAllThreadsPost(Document form, TileLayer tl)
+    private ResponseEntity<?> handleKillAllThreadsPost(Map<String, String> form, TileLayer tl)
             throws RestException {
 
         final boolean allLayers = tl == null;
 
-        String killCode = form.getElementById("kill_all").val();
+        String killCode = form.get("kill_all");
 
         final Iterator<GWCTask> tasks;
         if ("1".equals(killCode) || "running".equalsIgnoreCase(killCode)) {
@@ -710,8 +703,8 @@ public class SeedFormController extends GWCController {
         return new ResponseEntity<>(doc.toString(), getHeaders(), HttpStatus.OK);
     }
 
-    private ResponseEntity<?> handleKillThreadPost(Document form, TileLayer tl) {
-        String id = form.getElementById("thread_id").val();
+    private ResponseEntity<?> handleKillThreadPost(Map<String, String> form, TileLayer tl) {
+        String id = form.get("kill_thread");
 
         StringBuilder doc = new StringBuilder();
 
@@ -734,39 +727,37 @@ public class SeedFormController extends GWCController {
         return new ResponseEntity<Object>(doc.toString(), getHeaders(), HttpStatus.OK);
     }
 
-    private ResponseEntity<?> handleDoSeedPost(Document form, TileLayer tl) throws RestException,
+    private ResponseEntity<?> handleDoSeedPost(Map<String, String> form, TileLayer tl) throws RestException,
             GeoWebCacheException {
         BoundingBox bounds = null;
 
-        if (form.getElementById("minX").val() != null) {
+        if (form.get("minX") != null) {
             bounds = new BoundingBox(parseDouble(form, "minX"), parseDouble(form, "minY"),
                     parseDouble(form, "maxX"), parseDouble(form, "maxY"));
         }
 
-        String gridSetId = form.getElementById("gridSetId").val();
+        String gridSetId = form.get("gridSetId");
 
-        int threadCount = Integer.parseInt(form.getElementById("threadCount").val());
-        int zoomStart = Integer.parseInt(form.getElementById("zoomStart").val());
-        int zoomStop = Integer.parseInt(form.getElementById("zoomStop").val());
-        String format = form.getElementById("format").val();
+        int threadCount = Integer.parseInt(form.get("threadCount"));
+        int zoomStart = Integer.parseInt(form.get("zoomStart"));
+        int zoomStop = Integer.parseInt(form.get("zoomStop"));
+        String format = form.get("format");
         Map<String, String> fullParameters;
         {
-            Map<String, String> parameters = new HashMap<String, String>();
-            Elements inputElements = form.getElementsByTag("input");
-
-//            Set<String> paramNames = form.getNames();
-//            String prefix = "parameter_";
-//            for (String name : inputElements) {
-//                if (name.startsWith(prefix)) {
-//                    String paramName = name.substring(prefix.length());
-//                    String value = form.getElementById(name).val();
-//                    parameters.put(paramName, value);
-//                }
-//            }
+            Map<String, String> parameters = new HashMap<String, String>();;
+            Set<String> paramNames = form.keySet();
+            String prefix = "parameter_";
+            for (String name : paramNames) {
+                if (name.startsWith(prefix)) {
+                    String paramName = name.substring(prefix.length());
+                    String value = form.get(name);
+                    parameters.put(paramName, value);
+                }
+            }
             fullParameters = tl.getModifiableParameters(parameters, "UTF-8");
         }
 
-        GWCTask.TYPE type = GWCTask.TYPE.valueOf(form.getElementById("type").val().toUpperCase());
+        GWCTask.TYPE type = GWCTask.TYPE.valueOf(form.get("type").toUpperCase());
 
         final String layerName = tl.getName();
         SeedRequest sr = new SeedRequest(layerName, bounds, gridSetId, threadCount, zoomStart,
@@ -794,8 +785,8 @@ public class SeedFormController extends GWCController {
         return new ResponseEntity<Object>(this.makeResponsePage(tl), getHeaders(), HttpStatus.OK);
     }
 
-    private static double parseDouble(Document form, String key) throws RestException {
-        String value = form.getElementById(key).val();
+    private static double parseDouble(Map<String, String> form, String key) throws RestException {
+        String value = form.get(key);
         if (value == null || value.length() == 0)
             throw new RestException("Missing value for " + key, HttpStatus.BAD_REQUEST);
         try {
