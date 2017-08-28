@@ -1,11 +1,11 @@
 package org.geowebcache.rest.filter;
 
-import java.io.IOException;
-
 import org.geowebcache.filter.request.RequestFilter;
 import org.geowebcache.layer.TileLayer;
-import org.geowebcache.rest.RestletException;
+import org.geowebcache.rest.exception.RestException;
+
+import java.io.IOException;
 
 public abstract class XmlFilterUpdate {
-    abstract protected void runUpdate(RequestFilter filter, TileLayer tl) throws IOException, RestletException;
+    abstract public void runUpdate(RequestFilter filter, TileLayer tl) throws IOException, RestException;
 }
